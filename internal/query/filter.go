@@ -62,12 +62,14 @@ func ParseFilters(r *http.Request) (*QueryParams, error) {
 			continue
 		}
 
-		key = strings.ToLower(key)
+		// Keep original case for column names, only lowercase for known params
+		keyLower := strings.ToLower(key)
 
-		switch key {
+		switch keyLower {
 		case "limit", "offset", "page", "order", "sort", "fields":
 			continue
 		default:
+			// Use original key (with original case) for column names
 			filter, err := parseFilter(key, values[0])
 			if err != nil {
 				return nil, fmt.Errorf("invalid filter '%s': %w", key, err)

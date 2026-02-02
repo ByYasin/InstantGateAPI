@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/proyaai/instantgate/internal/database/mysql"
@@ -274,8 +275,15 @@ func scanRows(rows *sql.Rows) ([]map[string]interface{}, error) {
 		for i, col := range columns {
 			val := values[i]
 
+			if val == nil {
+				rowMap[col] = nil
+				continue
+			}
+
 			if b, ok := val.([]byte); ok {
 				rowMap[col] = string(b)
+			} else if t, ok := val.(time.Time); ok {
+				rowMap[col] = t.Format(time.RFC3339)
 			} else {
 				rowMap[col] = val
 			}
@@ -284,5 +292,15 @@ func scanRows(rows *sql.Rows) ([]map[string]interface{}, error) {
 		results = append(results, rowMap)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return results, nil
+}
+
+type JSONTime time.Time
+
+func (jt JSONTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(time.Time(jt).Format(time.RFC3339))
 }

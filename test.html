@@ -66,7 +66,7 @@
                         <input
                             type="text"
                             id="endpoint"
-                            value="/api/api/users"
+                            value="/api/users"
                             class="w-full bg-zinc-900 border border-zinc-700/50 rounded-lg pl-[165px] pr-4 py-2 text-sm focus:outline-none focus:border-zinc-600"
                         >
                     </div>
@@ -210,7 +210,7 @@
                 }
             });
 
-            document.getElementById('endpoint').value = `/api/api/${name}`;
+            document.getElementById('endpoint').value = `/api/${name}`;
             document.getElementById('method').value = 'GET';
             document.getElementById('bodySection').classList.add('hidden');
             sendRequest();
@@ -430,7 +430,7 @@
 
         function viewRecord(id) {
             if (!currentTable) return;
-            document.getElementById('endpoint').value = `/api/api/${currentTable}/${id}`;
+            document.getElementById('endpoint').value = `/api/${currentTable}/${id}`;
             sendRequest();
         }
 

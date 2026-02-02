@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/proyaai/instantgate/internal/config"
@@ -83,23 +84,25 @@ func (i *Introspector) loadTableSchema(ctx context.Context, db *sql.DB, driver d
 		return nil, err
 	}
 
+	// Store columns with lowercase keys for case-insensitive lookup
 	columnMap := make(map[string]ColumnInfo)
 	for _, col := range columns {
-		columnMap[col.Name] = ColumnInfo{
-			Name:          col.Name,
-			Type:          col.Type,
-			GoType:        getGoType(col.Type),
-			Nullable:      col.Nullable,
-			IsPrimaryKey:  col.IsPrimaryKey,
+		lowerName := strings.ToLower(col.Name)
+		columnMap[lowerName] = ColumnInfo{
+			Name:            col.Name, // Keep original case for display
+			Type:            col.Type,
+			GoType:          getGoType(col.Type),
+			Nullable:        col.Nullable,
+			IsPrimaryKey:    col.IsPrimaryKey,
 			IsAutoIncrement: col.IsAutoIncrement,
-			MaxLength:     col.MaxLength,
+			MaxLength:       col.MaxLength,
 		}
 	}
 
 	return &TableSchema{
 		Name:          tableName,
 		Columns:       columnMap,
-		PrimaryKey:    pk,
+		PrimaryKey:    strings.ToLower(pk), // Store lowercase PK
 		Relationships: relationships,
 	}, nil
 }
@@ -129,13 +132,14 @@ func NewSchemaCache() *SchemaCache {
 func (sc *SchemaCache) Set(table string, schema *TableSchema) {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
-	sc.tables[table] = schema
+	// Store with lowercase key for case-insensitive lookup
+	sc.tables[strings.ToLower(table)] = schema
 }
 
 func (sc *SchemaCache) Get(table string) (*TableSchema, bool) {
 	sc.mu.RLock()
 	defer sc.mu.RUnlock()
-	schema, ok := sc.tables[table]
+	schema, ok := sc.tables[strings.ToLower(table)]
 	return schema, ok
 }
 
@@ -164,7 +168,7 @@ func (sc *SchemaCache) GetTables() []string {
 func (sc *SchemaCache) TableExists(table string) bool {
 	sc.mu.RLock()
 	defer sc.mu.RUnlock()
-	_, ok := sc.tables[table]
+	_, ok := sc.tables[strings.ToLower(table)]
 	return ok
 }
 

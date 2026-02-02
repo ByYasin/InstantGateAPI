@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -21,11 +22,18 @@ func SendError(w http.ResponseWriter, r *http.Request, status int, message strin
 		Code:    status,
 	}
 
-	if err != nil && status >= 500 {
-		resp.Message = "An internal error occurred"
+	if err != nil {
+		log.Printf("[ERROR] %s %s - Status: %d - Error: %v - Message: %s",
+			r.Method, r.URL.Path, status, err, message)
+
+		if status >= 500 {
+			resp.Message = "An internal error occurred"
+		}
 	}
 
-	json.NewEncoder(w).Encode(resp)
+	if encErr := json.NewEncoder(w).Encode(resp); encErr != nil {
+		log.Printf("[ERROR] Failed to encode error response: %v", encErr)
+	}
 }
 
 func SendJSON(w http.ResponseWriter, r *http.Request, status int, data interface{}) {
@@ -33,7 +41,9 @@ func SendJSON(w http.ResponseWriter, r *http.Request, status int, data interface
 	w.WriteHeader(status)
 
 	if data != nil {
-		json.NewEncoder(w).Encode(data)
+		if err := json.NewEncoder(w).Encode(data); err != nil {
+			log.Printf("[ERROR] Failed to encode JSON response: %v", err)
+		}
 	}
 }
 

@@ -105,16 +105,13 @@ func (s *Server) setupRoutes() {
 	apiRouter.Get("/schema", s.schemaHandler.ListTables)
 	apiRouter.Get("/schema/{table}", s.schemaHandler.GetTableSchema)
 
-	crudRouter := chi.NewRouter()
-	crudRouter.Use(mw.TableAccessControl(s.accessControl))
+	crudGroup := apiRouter.With(mw.TableAccessControl(s.accessControl))
 
-	crudRouter.Get("/{table}", s.genericHandler.ListTable)
-	crudRouter.Get("/{table}/{id}", s.genericHandler.GetByID)
-	crudRouter.Post("/{table}", s.genericHandler.Create)
-	crudRouter.Patch("/{table}/{id}", s.genericHandler.Update)
-	crudRouter.Delete("/{table}/{id}", s.genericHandler.Delete)
-
-	apiRouter.Mount("/api", crudRouter)
+	crudGroup.Get("/{table}", s.genericHandler.ListTable)
+	crudGroup.Get("/{table}/{id}", s.genericHandler.GetByID)
+	crudGroup.Post("/{table}", s.genericHandler.Create)
+	crudGroup.Patch("/{table}/{id}", s.genericHandler.Update)
+	crudGroup.Delete("/{table}/{id}", s.genericHandler.Delete)
 
 	s.router.Mount("/api", apiRouter)
 
