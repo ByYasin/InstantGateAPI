@@ -15,20 +15,22 @@ import (
 	"github.com/proyaai/instantgate/internal/config"
 	"github.com/proyaai/instantgate/internal/database/mysql"
 	"github.com/proyaai/instantgate/internal/security"
+	"github.com/proyaai/instantgate/internal/validation"
 )
 
 type Server struct {
-	config         *config.Config
-	router         *chi.Mux
-	introspector   *mysql.Introspector
-	schemaCache    *mysql.SchemaCache
-	jwtManager     *security.JWTManager
-	accessControl  *security.AccessControl
-	cache          *cache.Cache
-	healthHandler  *handlers.HealthHandler
-	schemaHandler  *handlers.SchemaHandler
-	genericHandler *handlers.GenericHandler
-	httpServer     *http.Server
+	config            *config.Config
+	router            *chi.Mux
+	introspector      *mysql.Introspector
+	schemaCache       *mysql.SchemaCache
+	jwtManager        *security.JWTManager
+	accessControl     *security.AccessControl
+	validationManager *validation.ValidationManager
+	cache             *cache.Cache
+	healthHandler     *handlers.HealthHandler
+	schemaHandler     *handlers.SchemaHandler
+	genericHandler    *handlers.GenericHandler
+	httpServer        *http.Server
 }
 
 func NewServer(cfg *config.Config) (*Server, error) {
@@ -65,7 +67,8 @@ func NewServer(cfg *config.Config) (*Server, error) {
 
 	s.healthHandler = handlers.NewHealthHandler(s.introspector.GetDB())
 	s.schemaHandler = handlers.NewSchemaHandler(s.schemaCache)
-	s.genericHandler = handlers.NewGenericHandler(s.introspector.GetDB(), s.schemaCache)
+	s.validationManager = validation.NewValidationManager(&cfg.Validation, s.schemaCache)
+	s.genericHandler = handlers.NewGenericHandler(s.introspector.GetDB(), s.schemaCache, s.validationManager)
 
 	s.setupRoutes()
 

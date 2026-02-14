@@ -39,4 +39,8 @@ func setDefaults(v *viper.Viper) {
 
 	v.SetDefault("logging.level", "info")
 	v.SetDefault("logging.format", "json")
+
+	v.SetDefault("validation.enabled", true)
+	v.SetDefault("validation.strict_mode", false)
+	v.SetDefault("validation.rules", map[string]interface{}{})
 }

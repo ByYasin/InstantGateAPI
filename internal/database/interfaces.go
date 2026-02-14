@@ -20,13 +20,15 @@ type Driver interface {
 }
 
 type ColumnInfo struct {
-	Name         string
-	Type         string
-	Nullable     bool
-	DefaultValue sql.NullString
-	IsPrimaryKey bool
+	Name            string
+	Type            string
+	Nullable        bool
+	DefaultValue    sql.NullString
+	IsPrimaryKey    bool
 	IsAutoIncrement bool
-	MaxLength    sql.NullInt64
+	MaxLength       sql.NullInt64
+	EnumValues      []string // ENUM değerleri (dinamik)
+	IsUnique        bool     // Unique constraint var mı?
 }
 
 type RelationshipInfo struct {

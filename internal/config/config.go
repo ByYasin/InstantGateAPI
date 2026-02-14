@@ -9,12 +9,13 @@ import (
 )
 
 type Config struct {
-	Server   ServerConfig   `mapstructure:"server"`
-	Database DatabaseConfig `mapstructure:"database"`
-	JWT      JWTConfig      `mapstructure:"jwt"`
-	Redis    RedisConfig    `mapstructure:"redis"`
-	Security SecurityConfig `mapstructure:"security"`
-	Logging  LoggingConfig  `mapstructure:"logging"`
+	Server     ServerConfig     `mapstructure:"server"`
+	Database   DatabaseConfig   `mapstructure:"database"`
+	JWT        JWTConfig        `mapstructure:"jwt"`
+	Redis      RedisConfig      `mapstructure:"redis"`
+	Security   SecurityConfig   `mapstructure:"security"`
+	Validation ValidationConfig `mapstructure:"validation"`
+	Logging    LoggingConfig    `mapstructure:"logging"`
 }
 
 type ServerConfig struct {
@@ -89,6 +90,20 @@ func (s *SecurityConfig) IsTableAllowed(table string) bool {
 type LoggingConfig struct {
 	Level  string `mapstructure:"level"`
 	Format string `mapstructure:"format"`
+}
+
+type ValidationConfig struct {
+	Enabled    bool                              `mapstructure:"enabled"`
+	StrictMode bool                              `mapstructure:"strict_mode"`
+	Rules      map[string]map[string][]RuleItem `mapstructure:"rules"`
+}
+
+type RuleItem struct {
+	Type    string      `mapstructure:"type"`
+	Pattern string      `mapstructure:"pattern"`
+	Value   interface{} `mapstructure:"value"`
+	Values  []string    `mapstructure:"values"`
+	Message string      `mapstructure:"message"`
 }
 
 func Load(configPath string) (*Config, error) {

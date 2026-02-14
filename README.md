@@ -13,6 +13,7 @@
 - **SQL Injection Koruması**: Tüm sorgular prepared statement kullanır
 - **Case-Insensitive**: Tablo ve kolon isimlerinde büyük/küçük harf duyarsız
 - **Identifier Escaping**: MySQL reserved words ve özel karakterler için otomatik koruma
+- **Dinamik Validasyon**: Veritabanı şemasından otomatik kural çıkarma + config'den özel kurallar
 - **Docker Ready**: Tek komut ile dağıtım
 
 ## Hızlı Başlangıç
@@ -130,6 +131,19 @@ redis:
   host: localhost
   port: 6379
   cache_ttl: 5m
+
+validation:
+  enabled: true           # Validasyonu aç/kapat
+  strict_mode: false      # Bilinmeyen alanları reddet
+  rules:                  # Özel validasyon kuralları (opsiyonel)
+    users:
+      email:
+        - type: regex
+          pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+          message: "Geçerli bir email adresi giriniz"
+      username:
+        - type: required
+          message: "Kullanıcı adı zorunludur"
 ```
 
 ## Güvenlik

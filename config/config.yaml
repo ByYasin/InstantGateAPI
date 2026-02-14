@@ -46,3 +46,45 @@ security:
 logging:
   level: info
   format: json
+
+# Validation configuration
+validation:
+  enabled: true
+  strict_mode: false  # true ise bilinmeyen alanlar reddedilir
+
+  # Tablo bazlı validasyon kuralları
+  rules:
+    users:
+      email:
+        - type: regex
+          pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+          message: "Geçerli bir email adresi giriniz"
+      username:
+        - type: required
+          message: "Kullanıcı adı zorunludur"
+        - type: regex
+          pattern: "^[a-zA-Z0-9_]{3,50}$"
+          message: "Kullanıcı adı 3-50 karakter, sadece harf, rakam ve _ içerebilir"
+
+    products:
+      price:
+        - type: min
+          value: 0
+          message: "Fiyat negatif olamaz"
+        - type: max
+          value: 999999.99
+          message: "Fiyat çok yüksek"
+      stock_quantity:
+        - type: min
+          value: 0
+          message: "Stok miktarı negatif olamaz"
+
+    orders:
+      status:
+        - type: enum
+          values: ["pending", "processing", "shipped", "delivered", "cancelled"]
+          message: "Geçersiz sipariş durumu"
+      total_amount:
+        - type: min
+          value: 0
+          message: "Toplam tutar negatif olamaz"

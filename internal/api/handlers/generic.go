@@ -10,19 +10,22 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/proyaai/instantgate/internal/database/mysql"
 	"github.com/proyaai/instantgate/internal/query"
+	"github.com/proyaai/instantgate/internal/validation"
 )
 
 type GenericHandler struct {
-	db      *sql.DB
-	schema  *mysql.SchemaCache
-	builder *query.Builder
+	db        *sql.DB
+	schema    *mysql.SchemaCache
+	builder   *query.Builder
+	validator *validation.ValidationManager
 }
 
-func NewGenericHandler(db *sql.DB, schema *mysql.SchemaCache) *GenericHandler {
+func NewGenericHandler(db *sql.DB, schema *mysql.SchemaCache, validator *validation.ValidationManager) *GenericHandler {
 	return &GenericHandler{
-		db:      db,
-		schema:  schema,
-		builder: query.NewBuilder(schema),
+		db:        db,
+		schema:    schema,
+		builder:   query.NewBuilder(schema),
+		validator: validator,
 	}
 }
 
@@ -145,6 +148,16 @@ func (h *GenericHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate data before insert
+	if err := h.validator.Validate(tableName, data, validation.OperationCreate); err != nil {
+		if valErr, ok := err.(*validation.ValidationError); ok {
+			SendValidationError(w, r, map[string]string{valErr.Field: valErr.Message})
+			return
+		}
+		SendError(w, r, http.StatusBadRequest, ErrValidationFailed, err)
+		return
+	}
+
 	insertSQL, args, err := h.builder.BuildInsert(tableName, data)
 	if err != nil {
 		SendError(w, r, http.StatusBadRequest, ErrInvalidInput, err)
@@ -187,6 +200,16 @@ func (h *GenericHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	if len(data) == 0 {
 		SendError(w, r, http.StatusBadRequest, "Request body is empty", nil)
+		return
+	}
+
+	// Validate data before update
+	if err := h.validator.Validate(tableName, data, validation.OperationUpdate); err != nil {
+		if valErr, ok := err.(*validation.ValidationError); ok {
+			SendValidationError(w, r, map[string]string{valErr.Field: valErr.Message})
+			return
+		}
+		SendError(w, r, http.StatusBadRequest, ErrValidationFailed, err)
 		return
 	}
 
